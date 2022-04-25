@@ -1,8 +1,4 @@
 #!/usr/bin/python
-!pip install Flask
-!pip install flask_restx
-!pip install joblib
-
 from flask import Flask
 from flask_restx import Api, Resource, fields
 import joblib
