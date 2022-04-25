@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'miad-tutorial-XYZ'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7E06608A5D0849AFABF57153942619E2 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CC63C36DF4664A9B86409A14BD19855F }}
