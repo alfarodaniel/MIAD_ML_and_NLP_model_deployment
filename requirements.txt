@@ -1,6 +1,6 @@
 Flask==2.0.2
-pandas
-sys
-os
 flask_restx==0.5.1
-joblib==1.1.0
+pandas
+numpy
+xgboost==1.6.0
+sklearn
