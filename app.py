@@ -14,7 +14,7 @@ def predict_genres(Movie):
     # Carga modelo
     modelo_ = load('LogReg_pipeline.joblib')
     
-     
+    
     # Make prediction
     genres_name = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary',
            'Drama', 'Family', 'Fantasy', 'Film-Noir', 'History', 'Horror', 'Music', 'Musical',
