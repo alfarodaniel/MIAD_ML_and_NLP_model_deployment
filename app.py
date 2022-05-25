@@ -2,33 +2,33 @@ from flask import Flask
 from flask_restx import Api, Resource, fields
 import pandas as pd
 import numpy as np
-from xgboost import XGBRegressor
-from sklearn import preprocessing
+from xgboost import XGBClassifier
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.pipeline import Pipeline
+from joblib import load
 
 
-def predict_price(Year, Mileage, State, Make, Model):
-    
-    # Carga LabelEncoders
-    leState = preprocessing.LabelEncoder()
-    leState.classes_ = np.load('leState.npy', allow_pickle=True)
-    leMake = preprocessing.LabelEncoder()
-    leMake.classes_ = np.load('leMake.npy', allow_pickle=True)
-    leModel = preprocessing.LabelEncoder()
-    leModel.classes_ = np.load('leModel.npy', allow_pickle=True)
+def predict_genres(Movie):
     
     # Carga modelo
-    modelo_ = XGBRegressor()
-    modelo_.load_model("model_xgb.txt")
+    modelo_ = load('LogReg_pipeline.joblib')
     
-    datos_ = pd.DataFrame.from_dict({'Year':[int(Year)],'Mileage':[int(Mileage)],
-                                     'State':[int(leState.transform([' '+State]))],
-                                     'Make':[int(leMake.transform([Make]))],
-                                     'Model':[int(leModel.transform([Model]))],})
-    
+     
     # Make prediction
-    price = modelo_.predict(datos_)
+    genres_name = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary',
+           'Drama', 'Family', 'Fantasy', 'Film-Noir', 'History', 'Horror', 'Music', 'Musical',
+           'Mystery', 'News', 'Romance', 'Sci-Fi', 'Short', 'Sport', 'Thriller', 'War', 'Western']
+    genres_description = []
+    genres = ((modelo_.predict_proba([Movie]) >= 0.5)*1)[0]
+    if sum(genres) > 0:
+        for i in range(len(genres_name)):
+            if genres[i] == 1:
+                genres_description.append(genres_name[i])
+    else:
+        genres_description = ['No matches in Generes']
     
-    return price
+    return genres_description
 
 
 app = Flask(__name__)
@@ -36,51 +36,28 @@ app = Flask(__name__)
 api = Api(
     app, 
     version='1.0', 
-    title='Price Prediction API',
-    description='Price Prediction API')
+    title='Movie Generes Prediction API',
+    description='Movie Generes Prediction API')
 
 ns = api.namespace('predict', 
-     description='Price Regressor')
+     description='Movie Generes Classifier')
    
 parser = api.parser()
 
 parser.add_argument(
-    'Year', 
-    type=int, 
-    required=True, 
-    help='Year to be analyzed', 
-    location='args')
-parser.add_argument(
-    'Mileage', 
-    type=int, 
-    required=True, 
-    help='Mileage to be analyzed', 
-    location='args')
-parser.add_argument(
-    'State', 
+    'Movie', 
     type=str, 
     required=True, 
-    help='State to be analyzed', 
-    location='args')
-parser.add_argument(
-    'Make', 
-    type=str, 
-    required=True, 
-    help='Make to be analyzed', 
-    location='args')
-parser.add_argument(
-    'Model', 
-    type=str, 
-    required=True, 
-    help='Model to be analyzed', 
+    help='Movie to be analyzed', 
     location='args')
 
 resource_fields = api.model('Resource', {
-    'price': fields.String,
+    'Generes': fields.String,
 })
 
+
 @ns.route('/')
-class PriceApi(Resource):
+class GenresApi(Resource):
 
     @api.doc(parser=parser)
     @api.marshal_with(resource_fields)
@@ -88,9 +65,9 @@ class PriceApi(Resource):
         args = parser.parse_args()
         
         return {
-         "price": predict_price(args['Year'], args['Mileage'], args['State'], args['Make'], args['Model'])
+         "Generes": predict_genres(args['Movie'])
         }, 200
-    
+        
     
 if __name__ == '__main__':
     app.run()
